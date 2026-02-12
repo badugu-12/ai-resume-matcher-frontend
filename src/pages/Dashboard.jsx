@@ -19,28 +19,48 @@ export default function Dashboard() {
   const [showSignup, setShowSignup] = useState(false);
 
   /* ===========================
-     MATCH RESUME
-  ============================ */
-  const submitForm = async () => {
-    if (!resume || !jobDesc) {
-      alert("Upload resume & job description");
-      return;
-    }
+   MATCH RESUME
+=========================== */
+const submitForm = async () => {
+  if (!resume || !jobDesc) {
+    alert("Upload resume & job description");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("resume", resume);
-    formData.append("job_description", jobDesc);
+  const token = localStorage.getItem("token");
 
-    try {
-      setLoading(true);
-      const res = await api.post("/match", formData);
-      setMatchResult(res.data); // ✅ SINGLE SOURCE OF TRUTH
-    } catch (err) {
-      alert(err.response?.data?.detail || "Match failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!token) {
+    alert("Please login first");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("resume", resume);
+  formData.append("job_description", jobDesc);
+
+  try {
+    setLoading(true);
+
+    const res = await api.post(
+      "/match",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    setMatchResult(res.data);
+
+  } catch (err) {
+    alert(err.response?.data?.detail || "Match failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
      /* ===========================
      🔥 FORCE RESET (MAGIC)
