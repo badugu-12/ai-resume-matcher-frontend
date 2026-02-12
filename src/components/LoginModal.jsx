@@ -9,14 +9,23 @@ export default function LoginModal({ onClose, onSuccess }) {
 
   const handleLogin = async () => {
     try {
-      const res = await api.post("/login", {
-        email,
-        password, // ✅ JSON BODY
+      // ✅ Create form-urlencoded body (required by OAuth2PasswordBearer)
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
+
+      const res = await api.post("/login", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       });
 
+      // ✅ Save token
       login(res.data.access_token);
+
       onSuccess();
     } catch (err) {
+      console.error(err.response?.data);
       alert(
         err.response?.data?.detail || "Login failed"
       );
